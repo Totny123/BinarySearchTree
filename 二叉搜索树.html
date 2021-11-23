@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
+    />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>二叉搜索树</title>
+  </head>
+  <body>
+    <script>
+      function BinarySearchTree() {
+        this.root = null;
+
+        function Node(key) {
+          this.key = key;
+          this.left = null;
+          this.right = null;
+        }
+
+        BinarySearchTree.prototype.insert = function (key) {
+          let newNode = new Node(key);
+          if (this.root) {
+            this.insertNode(this.root, newNode);
+          } else {
+            this.root = newNode;
+          }
+        };
+
+        BinarySearchTree.prototype.insertNode = function (node, newNode) {
+          if (newNode.key < node.key) {
+            if (node.left) {
+              this.insertNode(node.left, newNode);
+            } else {
+              node.left = newNode;
+            }
+          } else {
+            if (node.right) {
+              this.insertNode(node.right, newNode);
+            } else {
+              node.right = newNode;
+            }
+          }
+        };
+
+        BinarySearchTree.prototype.preOrderTraversal = function (handler) {
+          if (this.root !== null) {
+            this.preOrderTraversalNode(this.root, handler);
+          }
+        };
+
+        BinarySearchTree.prototype.preOrderTraversalNode = function (
+          node,
+          handler
+        ) {
+          if (node !== null) {
+            handler(node.key);
+            this.preOrderTraversalNode(node.left, handler);
+            this.preOrderTraversalNode(node.right, handler);
+          }
+        };
+
+        BinarySearchTree.prototype.midOrderTraversal = function (handler) {
+          if (this.root !== null) {
+            this.midOrderTraversalNode(this.root, handler);
+          }
+        };
+
+        BinarySearchTree.prototype.midOrderTraversalNode = function (
+          node,
+          handler
+        ) {
+          if (node !== null) {
+            this.midOrderTraversalNode(node.left, handler);
+            handler(node.key);
+            this.midOrderTraversalNode(node.right, handler);
+          }
+        };
+
+        BinarySearchTree.prototype.postOrderTraversal = function (handler) {
+          if (this.root !== null) {
+            this.postOrderTraversalNode(this.root, handler);
+          }
+        };
+
+        BinarySearchTree.prototype.postOrderTraversalNode = function (
+          node,
+          handler
+        ) {
+          if (node !== null) {
+            this.postOrderTraversalNode(node.left, handler);
+            this.postOrderTraversalNode(node.right, handler);
+            handler(node.key);
+          }
+        };
+
+        BinarySearchTree.prototype.min = function (handler) {
+          let node = this.root;
+          let key = null;
+          while (node !== null) {
+            key = node.key;
+            node = node.left;
+          }
+          return key;
+        };
+
+        BinarySearchTree.prototype.max = function () {
+          let node = this.root;
+          let key = null;
+          while (node !== null) {
+            key = node.key;
+            node = node.right;
+          }
+          return key;
+        };
+
+        BinarySearchTree.prototype.search = function (key) {
+          if (this.root !== null) {
+            let node = this.root;
+            while (node !== null) {
+              if (key < node.key) {
+                node = node.left;
+              } else if (key > node.key) {
+                node = node.right;
+              } else {
+                return node.key;
+              }
+            }
+            return false;
+          } else {
+            return false;
+          }
+        };
+
+        BinarySearchTree.prototype.searchDigui = function (key) {
+          return this.searchDiguiNode(this.root, key);
+        };
+
+        BinarySearchTree.prototype.searchDiguiNode = function (node, key) {
+          if (node === null) {
+            return false;
+          }
+          if (key < node.key) {
+            return this.searchDiguiNode(node.left, key);
+          } else if (key > node.key) {
+            return this.searchDiguiNode(node.right, key);
+          } else {
+            return node.key;
+          }
+        };
+
+        BinarySearchTree.prototype.remove = function (key) {
+          let current = this.root;
+          let parent = null;
+          let direction = undefined;
+          while (current.key !== key) {
+            parent = current;
+            if (key < current.key) {
+              current = current.left;
+              direction = "left";
+            } else if (key > current.key) {
+              current = current.right;
+              direction = "right";
+            }
+            if (current === null) {
+              return false;
+            }
+          }
+          if (current.left === null && current.right === null) {
+            if (current === this.root) {
+              this.root = null;
+            } else {
+              parent[direction] = null;
+            }
+          } else {
+            if (current.left === null) {
+              if (current === this.root) {
+                this.root = current.right;
+              } else {
+                parent[direction] = current.right;
+              }
+            } else if (current.right === null) {
+              if (current === this.root) {
+                this.root = current.left;
+              } else {
+                parent[direction] = current.left;
+              }
+            } else {
+              //需要判断是否为根节点，是根节点直接替换就好
+              if (current === this.root) {
+                this.root = this.getSuccessor(current);
+              } else {
+                parent[direction] = this.getSuccessor(current);
+              }
+            }
+          }
+        };
+        BinarySearchTree.prototype.getSuccessor = function (delNode) {
+          //可以直接.right获取，因为这是删除的第三种情况。delNode肯定是由两个子节点的。
+          //.right也表示了是从右子树找successor
+          let successor = delNode.right;
+
+          //保存successor的父节点，用于指向successor的右子树。
+          //为什么不用指向successor左子树呢？successor就是最小值了，肯定没有左子树，所以不用考虑
+          let successorParent = delNode;
+
+          //递进找后继，同时要修改successorParent的指向
+          while (successor.left !== null) {
+            successorParent = successor;
+            successor = successor.left;
+          }
+
+          //找到的后继就是delNode的右子树，表示delNode右子树中没有左子树，所以不需要successParent
+          if (successor === delNode.right) {
+            //将delNode左子树给successor左子树。successor的右子树不用动
+            successor.left = delNode.left;
+            return successor;
+          } else {
+            //delNode右子树中有左子树。意味着successor会递进，所以要有successorParent用于保存后继的右子树。
+            //修改后继父节点的左子树指向与后继的右子树
+            successorParent.left = successor.right;
+            //将后继的指向修改。此时，后继作为根就是一颗完整的二叉搜索树。
+            //只需要在函数外部替换delNode即可。无需其他操作。
+            successor.right = delNode.right;
+            successor.left = delNode.left;
+            return successor;
+          }
+        };
+      }
+
+      let bst = new BinarySearchTree();
+      bst.insert(11);
+      bst.insert(7);
+      bst.insert(15);
+      bst.insert(5);
+      bst.insert(3);
+      bst.insert(9);
+      bst.insert(8);
+      bst.insert(10);
+      bst.insert(13);
+      bst.insert(12);
+      bst.insert(14);
+      bst.insert(20);
+      bst.insert(18);
+      bst.insert(25);
+      bst.insert(19);
+
+      let string = "";
+
+      function show(key) {
+        string += key + " ";
+      }
+
+      bst.remove(11);
+      bst.midOrderTraversal(show);
+      console.log(string);
+    </script>
+  </body>
+</html>
